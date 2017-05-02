@@ -60,7 +60,6 @@ void ProcessFile(string file);
 void ProcessEntity(struct dirent* entity);
 bool hasEnding (string const &fullString, string const &ending);
 
-
 int main() {
 	
 	string directory = "";
@@ -68,6 +67,7 @@ int main() {
 	try {
 		ProcessDirectory(directory);
 		PrintVec(books);
+
 	} catch (int e) {
 		cout << "Shit's fucked, dawg \n" << endl;
 	}
@@ -80,26 +80,37 @@ int main() {
 
 //Function that will find the title of a book and return that string
 string FindTitle(string filename) {
+
 	string line = "";
+	int lineNum = 0;
+	int lineMax = 50;
+	
 	ifstream infile(filename.c_str());
 	
 	while (line.find("Title:") == string::npos) {
+	
 		getline(infile,line);
+		
+		if(line.find("Title:") != string::npos) {
+		
+			line.erase(0,7);
+			return(line);
+		}
+		
+		if(lineNum > lineMax) {
+			return("Title Not Found");
+		}		
+		lineNum++;
 	}
 	
-	if(line.empty() == true) {
-		return("Title Not Found");
-	}else {
-		line.erase(0,7);//Erases "Title: " from the string
-		return(line);
-	}
 }
+
 
 //Prints each element of a vector, mainly used for testing purposes
 void PrintVec(vector<bookInfo> vec) {
 	
 	for(int it = 0; it < vec.size(); it++) {
-		cout << vec[it].bookNum << "," << vec[it].bookPath << endl;
+		cout << vec[it].bookNum << "," << vec[it].bookPath << "," << vec[it].title << endl;
 	}
 }
 
@@ -185,20 +196,14 @@ void ProcessFile(string file)
 {
   string fileType = ".txt";
   if (hasEnding(file,fileType)) {
-  	cout << bookNumber << "\n" << endl;
+  
 	books.push_back(bookInfo());
-	
-	books[bookNumber].title = FindTitle(file);
+		
+	books[bookNumber].title = FindTitle(path + file.c_str());
 	books[bookNumber].bookNum = bookNumber;
 	books[bookNumber].bookPath = path + file.c_str();
 	
-  	//cout << path + file.c_str() << "\n" << endl;
   	bookNumber++;
-  
-  	
-  	
-  	//books.push_back(FindTitle(file.c_str()));
-  	//PrintVec(books);
   }
   
 }
