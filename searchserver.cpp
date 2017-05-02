@@ -1,15 +1,13 @@
 /***************************************************************************
 * searchserver.cpp - Project Guttenburg Search Engine
 *
-* copyright : (C) 2017 by Christian Solorio
+* copyright : (C) 2017 by Christian Solorio, Aidan Murphy, Jessie Alperin
 *
 * This program is a command line interface for the project guttenburg search
 * engine we will be building. It makes a map of all of the words in all of
 *
 *
 ***************************************************************************/
-
-//test
 
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -25,48 +23,63 @@
 #include <fstream>
 #include <map>
 #include <iostream>
+#include <dirent.h> // Needed for directory search
 //#include "fifo.h"
+#include "cgicc/Cgicc.h"
+#include "cgicc/HTTPHTMLHeader.h"
+#include "cgicc/HTMLClasses.h"
+
+// Time
+#include <ctime>
+#include <unistd.h>
+#include <sys/time.h>
 
 using namespace std;
 
+/*Data Structure*/
+struct bookInfo { 
+	int bookNum;
+	string bookPath;
+	string title;
+};
+
+
 /*Global Variables*/
-string filepath = "/home/skon/books/";
+string path = "/home/skon/books";
+vector<bookInfo> books;
+int bookNumber = 0;
 
 
 /*Function Declarations*/
-vector<string> BuildBookArray(vector<string> bookInfo);
-void PrintVec(vector<string> vec);
-string FindTitle(string filename, vector<string> bookInfo);
+void PrintVec(vector<bookInfo> vec);
+string FindTitle(string filename);
 
 //For navigating the directory
-void ProcessDirectory(string directory,string word);
-void ProcessFile(string file,string word);
-void ProcessEntity(struct dirent* entity,string word);
+void ProcessDirectory(string directory);
+void ProcessFile(string file);
+void ProcessEntity(struct dirent* entity);
 bool hasEnding (string const &fullString, string const &ending);
 
 
 int main() {
-	vector<string> bookInfo;
-
-	PrintVec(BuildBookArray(filepath,bookInfo));
+	
+	string directory = "";
+	
+	try {
+		ProcessDirectory(directory);
+		PrintVec(books);
+	} catch (int e) {
+		cout << "Shit's fucked, dawg \n" << endl;
+	}
 	
 }
 
 /*Function Definitions*/
 
 //Function that will build and then return the array with a book's number, title, and filepath
-/*
-vector<string> BuildBookArray(vector<string> bookInfo) {
-	
-	string filename = filepath +  "/1/0/0/0/10001/10001/10001.txt";
-	
-	bookInfo.push_back(FindTitle(filename, bookInfo));
-	
-	return(bookInfo);
-}*/
 
 //Function that will find the title of a book and return that string
-string FindTitle(string filename, vector<string> bookInfo) {
+string FindTitle(string filename) {
 	string line = "";
 	ifstream infile(filename.c_str());
 	
@@ -74,17 +87,19 @@ string FindTitle(string filename, vector<string> bookInfo) {
 		getline(infile,line);
 	}
 	
-	line.erase(0,7);//Erases "Title: " from the string
-	
-	return(line);
+	if(line.empty() == true) {
+		return("Title Not Found");
+	}else {
+		line.erase(0,7);//Erases "Title: " from the string
+		return(line);
+	}
 }
 
 //Prints each element of a vector, mainly used for testing purposes
-void PrintVec(vector<string> vec) {
-	vector<string>::iterator it;
+void PrintVec(vector<bookInfo> vec) {
 	
-	for(it = vec.begin(); it < vec.end(); it++) {
-		cout << *it << endl;
+	for(int it = 0; it < vec.size(); it++) {
+		cout << vec[it].bookNum << "," << vec[it].bookPath << endl;
 	}
 }
 
@@ -100,7 +115,7 @@ bool hasEnding (string const &fullString, string const &ending) {
 
 // Process a given directory
 // This routine in mutually recursive with process entry
-void ProcessDirectory(string directory, string word)
+void ProcessDirectory(string directory)
 {
   string dirToOpen = path + directory;
   DIR *dir;
@@ -113,16 +128,16 @@ void ProcessDirectory(string directory, string word)
 
   if(NULL == dir)
     {
-      cout << "could not open directory: " << dirToOpen.c_str() <<\
-	endl;
+      cout << "could not open directory: " << dirToOpen.c_str() << endl;
       return;
     }
+    
   struct dirent *entity;
   entity = readdir(dir);
 
   while(entity != NULL)
     {
-      ProcessEntity(entity,word);
+      ProcessEntity(entity);
       entity = readdir(dir);
     }
 
@@ -132,7 +147,7 @@ void ProcessDirectory(string directory, string word)
 }
 
 // Process a given entry in a directory
-void ProcessEntity(struct dirent* entity, string word)
+void ProcessEntity(struct dirent* entity)
 {
   //find entity type
   if(entity->d_type == DT_DIR)
@@ -144,7 +159,7 @@ void ProcessEntity(struct dirent* entity, string word)
 	}
 
       //it's an directory so process it
-      ProcessDirectory(string(entity->d_name),word);
+      ProcessDirectory(string(entity->d_name));
       return;
     }
 
@@ -154,7 +169,7 @@ void ProcessEntity(struct dirent* entity, string word)
       //logFile << "File: " << path << entity->d_name << endl;
       //logFile.close();  
 
-      ProcessFile(string(entity->d_name), word);
+      ProcessFile(string(entity->d_name));
       return;
     }
 
@@ -166,58 +181,24 @@ void ProcessEntity(struct dirent* entity, string word)
 // Process a given file
 // Only look at it if it has a ".txt" extension
 // Searches the file fot the given word, counting the matches
-void ProcessFile(string file, string word)
+void ProcessFile(string file)
 {
   string fileType = ".txt";
   if (hasEnding(file,fileType)) {
-    fileCount++;
-    if (word.length()>0) {
-      int matches = stringMatchCount(file,word);
-      if (matches > 0) {
-	fileMatchCount++;
-	matchCount += matches;
-
-	cout << "<h4>Matches: " << matches << "</h4>";
-      }
-    }
-  }
-  // Get the current time
-  gettimeofday(&current, 0);
+  	cout << bookNumber << "\n" << endl;
+	books.push_back(bookInfo());
+	
+	books[bookNumber].title = FindTitle(file);
+	books[bookNumber].bookNum = bookNumber;
+	books[bookNumber].bookPath = path + file.c_str();
+	
+  	//cout << path + file.c_str() << "\n" << endl;
+  	bookNumber++;
   
-  int delta = current.tv_sec - start.tv_sec;
-  if (delta >= max_Time) {
-    throw (delta);
+  	
+  	
+  	//books.push_back(FindTitle(file.c_str()));
+  	//PrintVec(books);
   }
-  //if you want to do something with the file add your code here
+  
 }
-
-// get the next "word" from line, removing it from line,
-// and returning the word
-string getNext(string & line) {
-  string next;
-  //cout << "$" << line.length();
-  size_t start = line.find_first_not_of(delimiters);
-  if (start != string::npos) {
-    //cout << ":" << start;
-    size_t end = line.find_first_of(delimiters,start);
-    if (end != string::npos) {
-      //cout << "#" << end;
-      // word with delimiters on both sides
-      next = line.substr(start,end-start);
-      line.erase(0,end+1);
-    } else {
-      // word with delimiter only at start
-      next = line.substr(start);
-      line = "";
-    }
-  } else {
-    // no delimiters found at all
-    next = line;
-    line = "";
-  }
-  return next;
-}
-
-
-
-
