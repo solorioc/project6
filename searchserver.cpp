@@ -10,6 +10,7 @@
 ***************************************************************************/
 
 #include <sys/types.h>
+#include <stdio.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -52,7 +53,10 @@ int bookNumber = 0;
 
 /*Function Declarations*/
 void PrintVec(vector<bookInfo> vec);
+void WriteVec(vector<bookInfo> vec);
+void ReadVec(vector<bookInfo> vec);
 string FindTitle(string filename);
+
 
 //For navigating the directory
 void ProcessDirectory(string directory);
@@ -66,8 +70,11 @@ int main() {
 	
 	try {
 		ProcessDirectory(directory);
-		PrintVec(books);
-
+		//PrintVec(books);
+		WriteVec(books);
+		//ReadVec(books);
+		
+		
 	} catch (int e) {
 		cout << "Shit's fucked, dawg \n" << endl;
 	}
@@ -113,6 +120,53 @@ void PrintVec(vector<bookInfo> vec) {
 		cout << vec[it].bookNum << "," << vec[it].bookPath << "," << vec[it].title << endl;
 	}
 }
+
+void WriteVec(vector<bookInfo> vec) {
+	
+	/* CODE TO WRITE IN BINARY*/
+	/*string fileName = "book_info.txt";
+	ofstream myfile(fileName.c_str(),ios::out | ios::binary);
+	if(myfile.is_open()) {
+	
+		for(int it = 0; it < vec.size(); it++) {
+			myfile.write((char*)&vec[it].bookNum,sizeof(int));
+			
+			//<< vec[it].bookNum << "," << vec[it].bookPath << "," << vec[it].title << endl;
+		}
+		
+		myfile.close();	
+	} else {
+		cout << "Unable to open file";
+	}*/
+	
+	
+	/*CODE TO WRITE TO FILE NOT IN BINARY*/
+	ofstream myfile;
+	myfile.open("book_info.txt");
+	for(int it = 0; it < vec.size(); it++) {
+		myfile << vec[it].bookNum << "," << vec[it].bookPath << "," << vec[it].title << endl;
+	}
+	myfile.close();
+	
+}
+
+void ReadVec(vector<bookInfo> vec) {
+	int bookID;
+	
+	string fileName = "book_info.txt";
+	ifstream myfile(fileName.c_str(), ios::in | ios::binary);
+	
+	if(myfile.is_open()) {
+		while(!myfile.eof()) {
+			myfile.read((char*)bookID,sizeof(int));
+			cout << bookID << endl;
+		}
+		myfile.close();
+	}else {
+		cout << "Unable to read file";
+	}
+}
+
 
 // Check if a string has a given ending
 bool hasEnding (string const &fullString, string const &ending) {
