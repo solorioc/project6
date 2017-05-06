@@ -44,3 +44,5 @@ PutHTML:
 
 clean:
 	rm -f *.o searchserver testclient
+	rm -r index
+	mkdir index
