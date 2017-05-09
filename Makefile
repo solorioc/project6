@@ -13,23 +13,23 @@ CFLAGS= -std=c++11
 
 RM= /bin/rm -f
 
-all: searchserver PutCGI PutHTML
+all: indexbuilder searchclient PutCGI PutHTML
+#all: PutHTML
+indexbuilder.o: indexbuilder.cpp 
+	$(CC) -c $(CFLAGS) indexbuilder.cpp
 
-searchserver.o: searchserver.cpp 
-	$(CC) -c $(CFLAGS) searchserver.cpp
+indexbuilder: indexbuilder.o
+	$(CC) $(CFLAGS) indexbuilder.o -o indexbuilder -L/usr/local/lib -lcgicc
 
-searchserver: searchserver.o
-	$(CC) $(CFLAGS) searchserver.o -o searchserver -L/usr/local/lib -lcgicc
+searchclient.o: searchclient.cpp 
+	$(CC) -c searchclient.cpp 
 
-testclient.o: testclient.cpp 
-	$(CC) -c testclient.cpp 
+searchclient: searchclient.o 
+	$(CC) searchclient.o -o searchclient -L/usr/local/lib -lcgicc 
 
-testclient: testclient.o 
-	$(CC) testclient.o -o testclient 
-
-PutCGI: searchserver
-	chmod 757 searchserver
-	cp searchserver /usr/lib/cgi-bin/$(USER)_searchserver.cgi 
+PutCGI: indexbuilder
+	chmod 757 indexbuilder
+	cp indexbuilder /usr/lib/cgi-bin/$(USER)_indexbuilder.cgi 
 
 	#echo "Current contents of your cgi-bin directory: "
 	#ls -l /usr/lib/cgi-bin/
@@ -43,6 +43,6 @@ PutHTML:
 	#ls -l /var/www/html/class/softdev/$(USER)
 
 clean:
-	rm -f *.o searchserver testclient
+	rm -f *.o indexbuilder searchclient book_catalog.txt
 	rm -r index
 	mkdir index

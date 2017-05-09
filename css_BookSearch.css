@@ -1,0 +1,66 @@
+body {
+	background: radial-gradient(#FFFFFF,#DDDDD);
+	font-family: Roboto, Arial;
+	color: #ffffff;
+}
+
+h1 {
+	display: inline-block;
+	margin-bottom: 0px;
+}
+	
+#navBar {
+	position: fixed;
+	margin-left: -10px;
+	width: 110%;
+	height: 100px;
+	margin-top:	-20px;
+	background-color: #673AB7;
+	box-shadow: 1px 1px 28px #000000;
+}
+
+#title {
+	position: fixed;
+	width: 500px;
+	height: 100px;
+	margin-top: -10px;
+	margin-left: 10px;
+	margin-bottom: 0px;
+	display: inline;
+
+}
+#searchBar {
+	position: fixed;
+	margin-top: 90px;
+}
+
+#book {
+	width: 170px;
+	margin-left: 7px;
+	margin-top: 15px;
+	display: inline-block;
+}
+
+#responseArea {
+	position: absolute;
+	margin-top: 150px;
+	height: 40vw;
+	width: 99%;
+	overflow: auto;
+	color: #696969;
+}
+
+.stylish-input-group .input-group-addon{
+    background: white; 
+}
+
+.stylish-input-group .form-control{
+	border-right:0; 
+	box-shadow:0 0 0; 
+	border-color:#ccc;
+}
+
+.stylish-input-group button{
+    border:0;
+    background:transparent;
+}
